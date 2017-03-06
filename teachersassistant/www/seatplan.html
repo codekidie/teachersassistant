@@ -1,0 +1,41 @@
+       <div class="pages"> 
+          <!-- Page, data-page contains page name-->
+          <div data-page="seatplan" class="page">
+
+            <div class="page-content">
+             <div class="content-block">
+                <div class="content-block-inner">
+                      <h3 id="subjectheadername"></h3>
+                      <div class="content-block-title"> <button  class="button button-fill button-small button-raised color-blue" onclick="addChair()">Add Chair</button></div>
+                     
+
+                    <div id="sortChairs" class="list-group">
+                      <div class="chairitem chair_num1" onclick="showChairData(1)">1</div>
+                    </div>
+                    <br style="clear: both;">
+                    <hr>
+                    
+                    <center><button class="button button-small button-fill button-raised color-green" id="savechairs">Save</button></center>
+
+                            <center>
+                                    <h3>Attendance : <span id="date_today"></span></h3>
+                                    <p>Swipe Left to mark absent / present</p>
+                            </center>
+                            <div class="list-block">
+                                <ul id="swipe_attendance">
+                                    
+                                </ul>
+                          </div>
+                </div>
+            </div>
+                <div class="toolbar toolbar-bottom">
+                        <div class="toolbar-inner">
+                      </div>
+                </div>
+           
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
