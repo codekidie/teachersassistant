@@ -6,9 +6,9 @@
     <feature name="Device">
         <param name="browser-package" value="Device" />
     </feature>
-    <name>Faact</name>
-    <description>Exam</description>
-    <author email="support@phonegap.com" href="http://phonegap.com">PhoneGap Team</author>
+    <name>Teacher Assistant</name>
+    <description>Teacher Assistant</description>
+    <author email="support@phonegap.com" href="http://phonegap.com">Teacher Assistant</author>
     <content src="index.html" />
     <icon src="icon.png" />
     <access origin="*" />

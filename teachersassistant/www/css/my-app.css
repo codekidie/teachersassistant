@@ -20,5 +20,15 @@
     border: 1px solid;
 }
 
+@media print{
+	#printme{
+		margin:0px !important;
+		position: fixed;
+		top:200px;
+		left:35%;
+	}
+}
+
+
 
 

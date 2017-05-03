@@ -1,16 +1,15 @@
 // Initialize your app
 var myApp = new Framework7({
-    modalTitle:'Faact',
+    modalTitle:'Teachers Assistant',
     pushState:true,
     material:true,
+    // swipePanel: 'left',
     onAjaxStart:function(xhr){
       myApp.showPreloader();
-      console.log('showPreloader');
+
     },
     onAjaxComplete:function(xhr){
        myApp.hidePreloader();
-      console.log('hidePreloader');
-
     }
 });
 
@@ -21,8 +20,36 @@ var $$ = Dom7;
 
 // Add view
 var mainView = myApp.addView('.view-main', {
-    domCache:true,
+    domCache:false,
 });
+
+
+
+function onConfirm(button) {
+    if(button==2){//If User selected No, then we just do nothing
+        return;
+    }else{
+        navigator.app.exitApp();// Otherwise we quit the app.
+    }
+}
+
+// Start new code for back button
+document.addEventListener('deviceready', function() {
+    var exitApp = false, intval = setInterval(function (){exitApp = false;}, 1000);
+    document.addEventListener("backbutton", function (e){
+        e.preventDefault();
+        if (exitApp) {
+            clearInterval(intval) 
+            navigator.notification.confirm("Are you sure you want to exit ?", onConfirm, "Confirmation", "Yes,No"); 
+        }
+        else {
+            exitApp = true;
+            history.back(1);
+        } 
+    }, false);
+}, false);
+
+
 
 
 function showloader()
@@ -30,25 +57,20 @@ function showloader()
    myApp.showPreloader();
     setTimeout(function () {
         myApp.hidePreloader();
-    }, 4000);
+    }, 1000);
 }
 
-
- document.addEventListener("deviceready", onDeviceReady, false);
-  function onDeviceReady() {
-      console.log("navigator.geolocation works well");
-  } 
 
 
 myApp.onPageInit('index', function() {
   showloader();
   $$('.hideonlogin').hide();
+  $$('.navbar').hide();
 }).trigger();
 
 
 $$('.signout').on('click', function () {
     showloader();
-    
       firebase.auth().signOut().then(function() {
          mainView.router.loadPage({url:'login-screen-page.html', ignoreCache:true, reload:true })
       }, function(error) {
@@ -63,113 +85,126 @@ $$('.signout').on('click', function () {
 myApp.onPageInit('login-screen', function (page) {
   var pageContainer = $$(page.container);
   $$('.hideonlogin').hide();
+  $$('.navbar').hide();
 
-// Code to Login Using Fb
-  pageContainer.find('.login-fb').on('click', function () {
-      var provider = new firebase.auth.FacebookAuthProvider();
-      firebase.auth().signInWithPopup(provider).then(function(result) {
-        // This gives you a Facebook Access Token. You can use it to access the Facebook API.
-        var token = result.credential.accessToken;
-        // The signed-in user info.
-         var user = result.user;
-          if (user) {
-             mainView.router.loadPage({url:'home.html', ignoreCache:true, reload:true })
-          }
-      }).catch(function(error) {
-        // Handle Errors here.
-        var errorCode = error.code;
-        var errorMessage = error.message;
-        // The email of the user's account used.
-        var email = error.email;
-        // The firebase.auth.AuthCredential type that was used.
-        var credential = error.credential;
-        // ...
-      });
+    pageContainer.find('.login-button').on('click', function () {
+        myApp.showPreloader();
+        setTimeout(function () {
+            myApp.hidePreloader();
+        }, 4000);
+
+        var username = pageContainer.find('input[name="username"]').val();
+        var password = pageContainer.find('input[name="password"]').val();
+
+         function loginuserExistsCallback(username, exists) {
+            if (exists) {
+                mainView.router.loadPage({url:'account.html', ignoreCache:true, reload:true })
+                return true;
+            }
+            else {
+               
+                  myApp.alert('Error Username or Password is Not Correct!', function () {
+                      mainView.goBack();
+                  });
+             }
+          } 
+
+
+        var role = pageContainer.find('#role').val();
+        var ref = firebase.database().ref("users");
+        ref.orderByChild('username').equalTo(username)
+            .once('value').then(function(snapshot) {
+                    snapshot.forEach(function(childSnapshot) {
+                    var key = childSnapshot.key;
+                    var childData = childSnapshot.val();
+                    if (childData.username == username && childData.password == password) {
+                       $$('.statusbar-overlay').attr('data-userid', key);
+                       $$('.image').val(childData.image);
+                       $$('.fullname').val(childData.fullname);
+                       $$('.loginrole').val(childData.role);
+                       
+                        if (childData.role == 'teacher') {
+                          $$('.addsubject').html('<a href="addsubject.html" class="item-link close-panel"><div class="item-content"><div class="item-inner"><div class="item-title">  <div class="item-title"> Add Subject</div> </div> </div></a>');
+                        }
+                    }
+                });
+             var exists = (snapshot.val() !== null);
+             loginuserExistsCallback(username, exists);
+        });
   });
-
-// Code To Login Using Google
-  pageContainer.find('.login-google').on('click', function () {
-    var provider = new firebase.auth.GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/plus.login');
-    firebase.auth().signInWithPopup(provider).then(function(result) {
-      // This gives you a Google Access Token. You can use it to access the Google API.
-      var token = result.credential.accessToken;
-      // The signed-in user info.
-      var user = result.user;
-      console.log(user);
-      if (user) {
-         mainView.router.loadPage({url:'home.html', ignoreCache:true, reload:true })
-      }
-      // ...
-    }).catch(function(error) {
-      // Handle Errors here.
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      // The email of the user's account used.
-      var email = error.email;
-      // The firebase.auth.AuthCredential type that was used.
-      var credential = error.credential;
-      // ...
-    });
-  });  
-
-  pageContainer.find('.login-button').on('click', function () {
-
-    myApp.showPreloader();
-    setTimeout(function () {
-        myApp.hidePreloader();
-    }, 4000);
-
-    var username = pageContainer.find('input[name="username"]').val();
-    var password = pageContainer.find('input[name="password"]').val();
-    
-    var query = firebase.database().ref("users").orderByKey();
-    query.once("value")
-      .then(function(snapshot) {
-        snapshot.forEach(function(childSnapshot) {
-          var key = childSnapshot.key;
-          var childData = childSnapshot.val();
-          if (childData.username == username && childData.password == password) {
-            $$('.statusbar-overlay').attr('data-userid', key);
-
-             console.log(key);
-             mainView.router.loadPage({url:'home.html', ignoreCache:true, reload:true })
-             return true;
-
-          }
-      });
-    });
-  });
-});  
+});
 
 myApp.onPageInit('register-screen', function (page) {
   var pageContainer = $$(page.container);
   $$('.hideonlogin').hide();
+  $$('.navbar').hide();
 
-  pageContainer.find('.register-button').on('click', function () {
-    var fullname = pageContainer.find('input[name="fullname"]').val();
-    var username = pageContainer.find('input[name="username"]').val();
-    var password = pageContainer.find('input[name="password"]').val();
-      var db = firebase.database();
-      var ref = db.ref("users");
-      var newUser = ref.push();
-      newUser.set({
-        fullname: fullname,
-        username: username,
-        password: password
+      pageContainer.find('.register-button').on('click', function () {
+        var fullname = pageContainer.find('input[name="fullname"]').val();
+        var username = pageContainer.find('input[name="username"]').val();
+        var password = pageContainer.find('input[name="password"]').val();
+        var image = pageContainer.find('input[name="image"]').val();
+        var email = pageContainer.find('input[name="email"]').val();
+        var age = pageContainer.find('input[name="age"]').val();
+        var contact = pageContainer.find('input[name="contact"]').val();
+
+        var file_data = $$('#sortpicture').prop('files')[0];
+        var form_data = new FormData();
+        form_data.append('file', file_data);
+        
+        console.log(form_data);
+        function userExistsCallback(username, exists) {
+            if (exists) {
+               myApp.alert('Error Registration Username Already Exist!', function () {
+                mainView.goBack();
+              });
+            }
+            else {
+              $$.post('http://amadavaothesisrecords.com/upload.php', form_data , function (data) {
+            
+                      var db = firebase.database();
+                        var ref = db.ref("users");
+                        var newUser = ref.push();
+                        newUser.set({
+                          fullname: fullname,
+                          username: username,
+                              role: role,
+                          password: password,
+                          image   : data,
+                          email :email,
+                          age : age,
+                          contact: contact
+                        });
+
+                      if (role == "student") {
+                          myApp.alert('Student Successfully registered!', function () {
+                                mainView.router.loadPage({url:'login-screen-page.html', ignoreCache:true, reload:true })
+                                return true;
+                          });
+                      }else if (role == "teacher") {
+                          myApp.alert('Teacher Successfully registered!', function () {
+                                mainView.router.loadPage({url:'login-screen-page.html', ignoreCache:true, reload:true })
+                                return true;
+                          });
+                      }  
+
+                      
+              });
+            }
+       }
+
+
+          var role = pageContainer.find('#role').val();
+          var ref = firebase.database().ref("users");
+          ref.orderByChild('username').equalTo(username)
+              .once('value').then(function(snapshot) {
+               var exists = (snapshot.val() !== null);
+               userExistsCallback(username, exists);
+          });
+
+
+
       });
-    myApp.alert('Registration Success Username: ' + username + ', Password: ' + password, function () {
-      mainView.goBack();
-    });
-  });
-});     
-
-
-
-
-
-myApp.onPageInit('home', function(page) { 
-      $$('.hideonlogin').show();
 });
 
 
@@ -178,261 +213,58 @@ myApp.onPageInit('home', function(page) {
 $$(document).on('pageInit',function(e){
     var page = e.detail.page;
 
-    if (page.name === 'location') {
-        var map;
-      document.addEventListener("deviceready", function() {
-        var div = document.getElementById("map");
-
-        // Initialize the map view
-        map = plugin.google.maps.Map.getMap(div);
-
-        // Wait until the map is ready status.
-        map.addEventListener(plugin.google.maps.event.MAP_READY, onMapReady);
-      }, false);
-
-      function onMapReady() {
-        var button = document.getElementById("button");
-        button.addEventListener("click", onBtnClicked);
-      }
-
-      function onBtnClicked() {
-
-        // Move to the position with animation
-        map.animateCamera({
-          target: {lat: 37.422359, lng: -122.084344},
-          zoom: 17,
-          tilt: 60,
-          bearing: 140,
-          duration: 5000
-        }, function() {
-
-          // Add a maker
-          map.addMarker({
-            position: {lat: 37.422359, lng: -122.084344},
-            title: "Welecome to \n" +
-                   "Cordova GoogleMaps plugin for iOS and Android",
-            snippet: "This plugin is awesome!",
-            animation: plugin.google.maps.Animation.BOUNCE
-          }, function(marker) {
-
-            // Show the info window
-            marker.showInfoWindow();
-
-            // Catch the click event
-            marker.on(plugin.google.maps.event.INFO_CLICK, function() {
-
-              // To do something...
-              alert("Hello world!");
-
-            });
-          });
-        });
-      }
-    }
-
-    if (page.name === 'results') {
-      var user_id = $$('.statusbar-overlay').data('userid');
-      var artistic_total = [];
-      var conventional_total = [];
-      var enterprising_total = [];
-      var investigative_total = [];
-      var realistic_total = [];
-      var social_total = [];
-      var i = 0;
-        var query = firebase.database().ref("personality_test").orderByChild('user_id').equalTo(user_id)
-                .once('value').then(function(snapshot) {
-                    snapshot.forEach(function(childSnapshot) {
-                    ++i;
-
-
-                        var key = childSnapshot.key;
-                        var childData = childSnapshot.val();
-
-
-                        var artistic = [1,2,13,14,25,26,37,38,49,50,61,62,73,74,85,86,97];
-                        var conventionalinterest = [3,4,15,16,27,28,39,40,51,52,63,64,75,76,87,88,99,100];
-                        var enterprising = [5,6,17,18,29,30,41,42,53,54,65,66,77,78,89,90,101,102];
-                        var investigative = [7,8,19,20,31,32,43,44,55,56,67,68,79,80,91,92,103,104];
-                        var realistic = [9,10,21,22,33,34,45,46,57,58,69,70,81,82,93,94,105,106];
-                        var social = [11,12,23,24,35,36,47,48,59,60,71,72,83,84,95,96,107,108];
-
-                        
-                          if (childData.user_id == user_id) {
-                            console.log(childData.user_id);
-                            console.log(user_id);
-                              
-                              // Check where to store the data
-                              function isInArray(value, array) {
-                                return array.indexOf(value) > -1;
-                              }
-
-                              if (isInArray(i,artistic) === true){
-                                  artistic_total.push(parseInt(childData.answer));
-                              }
-                              else if(isInArray(i,conventionalinterest) === true){
-                                  conventional_total.push(parseInt(childData.answer));
-                              }
-                               else if(isInArray(i,enterprising) === true){
-                                 enterprising_total.push(parseInt(childData.answer));
-                              }
-
-                              else if(isInArray(i,investigative) === true){
-                                 investigative_total.push(parseInt(childData.answer));
-                              }
-
-                               else if(isInArray(i,realistic) === true){
-                                 realistic_total.push(parseInt(childData.answer));
-                              }
-
-                              else if(isInArray(i,social) === true){
-                                 social_total.push(parseInt(childData.answer));
-                              }
-
-                              
-
-                              var final_artistic_result = artistic_total.reduce(add, 0);
-                              var final_conventionalinterest_result = conventional_total.reduce(add, 0);
-                              var final_enterprising_result = enterprising_total.reduce(add, 0);
-                              var final_investigative_result = investigative_total.reduce(add, 0);
-                              var final_realistic_result = realistic_total.reduce(add, 0);
-                              var final_social_result = social_total.reduce(add, 0);
-                              function add(a, b) {
-                                  return a + b;
-                              }
-
-                              console.log(artistic_total);
-                              console.log(final_artistic_result);
-
-                              $$('#numeric_artistic').html(final_artistic_result+'%');
-                              $$('#numeric_conventional').html(final_conventionalinterest_result+'%');
-                              $$('#numeric_enterprising').html(final_enterprising_result+'%');
-                              $$('#numeric_investigative').html(final_investigative_result+'%');
-                              $$('#numeric_realistic').html(final_realistic_result+'%');
-                              $$('#numeric_social').html(final_social_result+'%');
-
-                              myApp.setProgressbar('#artistic',final_artistic_result, 2);
-                              myApp.setProgressbar('#conventional',final_conventionalinterest_result, 2);          
-                              myApp.setProgressbar('#enterprising',final_enterprising_result, 2);          
-                              myApp.setProgressbar('#investigative',final_investigative_result, 2);          
-                              myApp.setProgressbar('#realistic',final_realistic_result, 2);          
-                              myApp.setProgressbar('#social',final_social_result, 2);          
-                        }
-                  });      
-              });      
-
-    }
-
-     if (page.name === 'questions') {
+    if (page.name === 'addsubject') {
           var pageContainer = $$(page.container);
-          pageContainer.find('.addquestion').on('click', function () {
-            var qname = pageContainer.find('input[name="question"]').val();
-            var qnumber = pageContainer.find('input[name="question_num"]').val();
-              var db = firebase.database();
-              var ref = db.ref("personality_test_questions");
-              var newUser = ref.push();
-              newUser.set({
-                qname: qname,
-                qnum: qnumber
-              });
-            myApp.alert('Question Added: ' + qname , function () {
-              mainView.goBack();
-            });
-          });
-     }
+          var user_id = $$('.statusbar-overlay').data('userid');
 
+          pageContainer.find('.addsubject-button').on('click', function () {
+          var subjectname = pageContainer.find('input[name="subjectname"]').val();
+          var subjectcode = pageContainer.find('input[name="subjectcode"]').val();
+          var description = pageContainer.find('input[name="description"]').val();
+          var subjectschedule = pageContainer.find('input[name="subjectschedule"]').val();
 
+           function userExistsCallback(subjectcode, exists) {
+              if (exists) {
+                     myApp.alert('Error Add Subject , Already Exist!', function () {
+                      mainView.goBack();
+                    });
+              } else {
 
-    if (page.name === 'personalitytest') {    
-            var user_id = $$('.statusbar-overlay').data('userid');
-            
-            var query = firebase.database().ref("personality_test_questions");
-            query.once("value")
-              .then(function(snapshot) {
-                snapshot.forEach(function(childSnapshot) {
-                  var key = childSnapshot.key;
-                  var childData = childSnapshot.val();
-                   // Prepare Data
-                    var listHTML = '';
-                     listHTML+='<div class="content-block-title">'+childData.qnum+'. '+childData.qname+'</div><div class="list-block"> <ul>';
-                     for (var c = 1; c <= 5; c++) {
-
-                        listHTML+='<li><label class="label-radio item-content">';
-
-                        listHTML+=' <input type="radio" name="q'+childData.qnum+'" value="'+c+'"';
-                          if (c == 1) {
-                             listHTML+= 'checked';
-                          }
-                        listHTML+='>';
-                              
-                         listHTML+='<div class="item-media"> <i class="icon icon-form-radio"></i></div><div class="item-inner">';
-                         listHTML+= '<div class="item-title">'+c+'</div></div></label></li> ';
-                     }    
-                    listHTML += '</ul></div>';      
-
-                    listHTML += '';        
-
-                  $$('.questions').append(listHTML);
-              });
-            });
-
-              // Remove based on ID
-            // var ref = firebase.database().ref("personality_test"); 
-            // ref.orderByChild('user_id').equalTo(user_id)
-            //     .once('value').then(function(snapshot) {
-            //         snapshot.forEach(function(childSnapshot) {
-            //         ref.child(childSnapshot.key).remove();
-            //     });
-            // });
-           
-          $$('.personalitytest-submit').on('click', function(){
-                      var formData = myApp.formToJSON('#personality-test-form');
-                      var i = 0;
-                      var user_exist = [];
-
-                      var ref = firebase.database().ref("personality_test"); //root reference to your data
-                      ref.orderByChild('user_id').equalTo(user_id)
-                          .once('value').then(function(snapshot) {
-                            snapshot.forEach(function(childSnapshot) {
-                               ++i;
-                                 firebase.database().ref('personality_test/' + childSnapshot.key).set({
-                                        answer: formData['q' + i],
-                                        user_id:user_id ,
-                                        question_number: i
-                                    });
-                              });
+                      var db = firebase.database();
+                      var ref = db.ref("subjects");
+                      var newSubject = ref.push();
+                      newSubject.set({
+                        subjectcode: subjectcode,
+                        subjectname: subjectname,
+                        description: description,
+                        teacher_id    : user_id,
+                        subjectschedule : subjectschedule
                       });
 
+                    myApp.alert('Subject Added!', function () {
+                         mainView.goBack();
+                    });
+              }
+            }
 
-                      function userExistsCallback(userId, exists) {
-                        if (exists) {
-                          console.log('user ' + userId + ' exists!');
-                        } else {
-                          for (var c = 1; c <= 108; c++) {
-                                var db = firebase.database();
-                                var ref = db.ref("personality_test");
-                                var newPersonalitytestAns = ref.push();
-                                newPersonalitytestAns.set({
-                                  answer: formData['q' + c],
-                                  user_id:userId ,
-                                  question_number: c
-                                });   
-                            }
-                        }
-                      }
-
-                        var ref = firebase.database().ref("personality_test"); 
-                        ref.orderByChild('user_id').equalTo(user_id)
-                            .once('value').then(function(snapshot) {
-                             var exists = (snapshot.val() !== null);
-                             userExistsCallback(user_id, exists);
-                        });
+            var ref = firebase.database().ref("subjects");
+            ref.orderByChild('subjectcode').equalTo(subjectcode)
+                .once('value').then(function(snapshot) {
+                 var exists = (snapshot.val() !== null);
+                 userExistsCallback(subjectcode, exists);
+            });
 
 
-          }); 
-    }
 
+        });
+     }
+
+   
     if (page.name === 'account') {
+      $$('.hideonlogin').show();
+      $$('.navbar').show();
       var user_id = $$('.statusbar-overlay').data('userid');
+
       var query = firebase.database().ref("users").orderByKey();
         query.once("value")
           .then(function(snapshot) {
@@ -440,65 +272,193 @@ $$(document).on('pageInit',function(e){
               var key = childSnapshot.key;
               var childData = childSnapshot.val();
               if (key == user_id) {
-                console.log(childData.username);
-                $$('.username').html(childData.username);
-                $$('.fullname').html(childData.fullname);
-                 mainView.router.loadPage({url:'home.html', ignoreCache:true, reload:true })
-                 return true;
+                var fullname = childData.fullname;
+                // $$('.username').html(childData.username);
+                // $$('.fullname').html(childData.fullname);
+                // $$('.fullname').val(childData.fullname);
+                $$('.role').html(childData.role);
+                // $$('.email').html(childData.email);
+                // $$('.usercontact').html(childData.contact);
+                // $$('.age').html(childData.age);
+                $$(".fullnamebg").css("background-image", 'url(http://amadavaothesisrecords.com/uploads_teachers/'+childData.image+')');
+                
+                var username =  childData.username;
+                var fullname =  childData.fullname;
+                var role     =  childData.role;
+                var email    =  childData.email;
+                var contact  =  childData.contact;
+                var age      =  childData.age;
+
+                $$('.username').html(' <div class="item-input"><input value="'+username+'" type="text" id="username" name="username" readonly> </div>');
+
+                $$('.fullname').html(' <div class="item-input"><input value="'+fullname+'" type="text" id="fullname"  name="fullname"> </div>');
+
+                // $$('.role').html(' <div class="item-input"><input value="'+role+'" type="text" name="role"> </div>');
+
+                $$('.email').html(' <div class="item-input"><input value="'+email+'" type="text" id="email"  name="email"> </div>');
+
+                $$('.usercontact').html(' <div class="item-input"><input value="'+contact+'" type="text" id="usercontact"  name="contact"> </div>');
+
+                $$('.age').html(' <div class="item-input"><input value="'+age+'" type="text" id="age"  name="age"> </div>');
+            
+
+              $$('#username').on('keyup', function (e) { 
+                    
+                      var user_id = $$('.statusbar-overlay').data('userid');
+
+                        var ref = firebase.database().ref("users"); //root reference to your data
+                        ref.orderByKey().equalTo(user_id)
+                         .once('value').then(function(snapshot) {
+                             snapshot.forEach(function(childSnapshot) {
+                              var key = childSnapshot.key;
+                              var childData = childSnapshot.val();
+                                  if (key == user_id) {
+                                    var username =  $$('#username').val();
+                                    firebase.database().ref('users/'+key).update({
+                                          username: username
+                                    });
+                                     myApp.alert('Username Updated Successfully', 'Edit Account');
+
+                                  }
+                            });
+                        });
+              });
+
+
+              //   $$('#password').on('keyup', function (e) { 
+                    
+              //         var user_id = $$('.statusbar-overlay').data('userid');
+
+              //           var ref = firebase.database().ref("users"); //root reference to your data
+              //           ref.orderByKey().equalTo(user_id)
+              //            .once('value').then(function(snapshot) {
+              //                snapshot.forEach(function(childSnapshot) {
+              //                 var key = childSnapshot.key;
+              //                 var childData = childSnapshot.val();
+              //                     if (key == user_id) {
+              //                       var password =  $$('#password').val();
+              //                       firebase.database().ref('users/'+key).update({
+              //                             password: password
+              //                       });
+              //                        myApp.alert('Email Updated Successfully', 'Edit Account');
+
+              //                     }
+              //               });
+              //           });
+              // });
+
+
+              $$('#age').on('keyup', function (e) { 
+                    
+                      var user_id = $$('.statusbar-overlay').data('userid');
+
+                        var ref = firebase.database().ref("users"); //root reference to your data
+                        ref.orderByKey().equalTo(user_id)
+                         .once('value').then(function(snapshot) {
+                             snapshot.forEach(function(childSnapshot) {
+                              var key = childSnapshot.key;
+                              var childData = childSnapshot.val();
+                                  if (key == user_id) {
+                                    var age =  $$('#age').val();
+                                    firebase.database().ref('users/'+key).update({
+                                          age: age
+                                    });
+                                     myApp.alert('Age Updated Successfully', 'Edit Account');
+
+                                  }
+                            });
+                        });
+              });
+
+              // $$('#fullname').on('keyup', function (e) { 
+                    
+              //         var user_id = $$('.statusbar-overlay').data('userid');
+              //           var ref = firebase.database().ref("users"); //root reference to your data
+              //           ref.orderByKey().equalTo(user_id)
+              //            .once('value').then(function(snapshot) {
+              //                snapshot.forEach(function(childSnapshot) {
+              //                 var key = childSnapshot.key;
+              //                 var childData = childSnapshot.val();
+              //                     if (key == user_id) {
+              //                       var fullname =  $$('#fullname').val();
+              //                        myApp.alert('Full name Updated Successfully', 'Edit Account');
+
+              //                       firebase.database().ref('users/'+key).update({
+              //                             fullname: fullname
+              //                       });
+              //                     }
+              //               });
+              //           });
+              // });
+
+
+              $$('#email').on('keyup', function (e) { 
+                    
+                      var user_id = $$('.statusbar-overlay').data('userid');
+                      
+                        var ref = firebase.database().ref("users"); //root reference to your data
+                        ref.orderByKey().equalTo(user_id)
+                         .once('value').then(function(snapshot) {
+                             snapshot.forEach(function(childSnapshot) {
+                              var key = childSnapshot.key;
+                              var childData = childSnapshot.val();
+                                  if (key == user_id) {
+                                    var email =  $$('#email').val();
+                                    firebase.database().ref('users/'+key).update({
+                                          email: email
+                                    });
+                                     myApp.alert('Email Updated Successfully', 'Edit Account');
+                                  }
+                            });
+                        });
+              });
+
+
+                 $$('#usercontact').on('keyup', function (e) { 
+                    
+                      var user_id = $$('.statusbar-overlay').data('userid');
+                      
+                        var ref = firebase.database().ref("users"); //root reference to your data
+                        ref.orderByKey().equalTo(user_id)
+                         .once('value').then(function(snapshot) {
+                             snapshot.forEach(function(childSnapshot) {
+                              var key = childSnapshot.key;
+                              var childData = childSnapshot.val();
+                                  if (key == user_id) {
+                                    var contact =  $$('#usercontact').val();
+                                    firebase.database().ref('users/'+key).update({
+                                          contact: contact
+                                    });
+                                     myApp.alert('Contact Updated Successfully', 'Edit Account');
+
+                                  }
+                            });
+                        });
+              });
+
+
 
               }
           });
         });
-    }
+
+               
+                
 
 
-    if (page.name === 'disclaimer') {
-     
-    }
+    
 
-     if (page.name === 'register-screen') {
+
+      
+
         
-        $$('form.ajax-submit-onchange').on('submitted', function (e) {
-          var formData = myApp.formToJSON('form.ajax-submit-onchange');
-          var fullname = JSON.stringify(formData.fullname);
-          var username = JSON.stringify(formData.username);
-          var password = JSON.stringify(formData.password);
-          var url = 'http://192.168.1.2/androidapi/public/register';  
-            $$.get(url + '/'+fullname+ '/'+username+ '/'+password, function (data) {
-                 console.log(data + 'success');
-            });
-        });
+
+          mainView.router.loadPage({url:'account.html', ignoreCache:true, reload:true })
+          return true;
     }
 
+
+
+    
 
 })
-
-
-// Generate dynamic page
-var dynamicPageIndex = 0;
-function createContentPage() {
-	mainView.router.loadContent(
-        '<!-- Top Navbar-->' +
-        '<div class="navbar">' +
-        '  <div class="navbar-inner">' +
-        '    <div class="left"><a href="#" class="back link"><i class="icon icon-back"></i><span>Back</span></a></div>' +
-        '    <div class="center sliding">Dynamic Page ' + (++dynamicPageIndex) + '</div>' +
-        '  </div>' +
-        '</div>' +
-        '<div class="pages">' +
-        '  <!-- Page, data-page contains page name-->' +
-        '  <div data-page="dynamic-pages" class="page">' +
-        '    <!-- Scrollable page content-->' +
-        '    <div class="page-content">' +
-        '      <div class="content-block">' +
-        '        <div class="content-block-inner">' +
-        '          <p>Here is a dynamic page created on ' + new Date() + ' !</p>' +
-        '          <p>Go <a href="#" class="back">back</a> or go to <a href="services.html">Services</a>.</p>' +
-        '        </div>' +
-        '      </div>' +
-        '    </div>' +
-        '  </div>' +
-        '</div>'
-    );
-	return;
-}

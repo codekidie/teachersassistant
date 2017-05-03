@@ -53,6 +53,7 @@
 <input type="hidden" class="subject-name" name="subjectname">
 <input type="hidden" class="loginrole" name="loginrole">
 <input type="hidden" class="profile_id" name="profile_id">
+<input type="hidden" class="attendancestorer" >
 
 
 <input type="hidden" class="viewmessager_fullname" name="viewmessager_fullname">
@@ -65,7 +66,7 @@
     <div class="panel panel-left panel-reveal">
       <div class="content-block">
       <div class="list-block">
-                <ul>
+                <ul class="sidenavwrapper">
        
                  
                   <li class="subjects">
@@ -129,7 +130,7 @@
                         <div class="page-content">
                               <div class="content-block">
 
-                                <center><img src="logo.png"></center>
+                                <center><img src="amalogo.png" style="width:300px;"></center>
                                <center> <h1>Teachers Assistant</h1></center>
                                 <p class="buttons-row">
                                   <a href="login-screen-page.html" class="open-login-screen button button-big button-fill button-raised color-blue">Login</a>
@@ -147,18 +148,20 @@
 
 
     <script type="text/javascript" src="cordova.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/3.6.2/firebase.js"></script>
-    <script>
-      // Initialize Firebase
-      var config = {
-        apiKey: "AIzaSyCVAeMhRvVpQmXUJuj3IrQfn6CP0VrSB08",
-        authDomain: "teacherassistant-a42bd.firebaseapp.com",
-        databaseURL: "https://teacherassistant-a42bd.firebaseio.com",
-        storageBucket: "teacherassistant-a42bd.appspot.com",
-        messagingSenderId: "1010892811924"
-      };
-      firebase.initializeApp(config);
-    </script>
+   
+<script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyAeLpPzYshOHs3T0z8cmjWJBMeYNTZhNTY",
+    authDomain: "teacherassistant-6b347.firebaseapp.com",
+    databaseURL: "https://teacherassistant-6b347.firebaseio.com",
+    projectId: "teacherassistant-6b347",
+    storageBucket: "teacherassistant-6b347.appspot.com",
+    messagingSenderId: "612161289149"
+  };
+  firebase.initializeApp(config);
+</script>
 
     <script type="text/javascript" src="js/jquery-3.1.1.js"></script>
 <!--     <script type="text/javascript" src="js/jquery-ui.min.js"></script>
@@ -167,6 +170,7 @@
     <script type="text/javascript" src="js/Sortable.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript" src="js/framework7.min.js"></script>
+    <script type="text/javascript" src="js/printme.js"></script>
     <script type="text/javascript" src="js/my-app.js"></script>
     <script type="text/javascript" src="js/subject.js"></script>
     <script type="text/javascript" src="js/grades.js"></script>
@@ -180,6 +184,8 @@
     <script type="text/javascript" src="js/rate_student.js"></script>
     <script type="text/javascript" src="js/attendance.js"></script>
     <script type="text/javascript" src="js/profile.js"></script>
+    <script type="text/javascript" src="js/teachers.js"></script>
+    <script type="text/javascript" src="js/students.js"></script>
     <script type="text/javascript">
         app.initialize();
     </script>

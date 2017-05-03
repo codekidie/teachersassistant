@@ -1856,18 +1856,18 @@ i.icon {
   /* Material Icons http://google.github.io/material-design-icons/ */
 }
 i.icon.icon-back {
-  width: 24px;
-  height: 24px;
+    width: 29px;
+    height: 29px;
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'24'%20height%3D'24'%20viewBox%3D'0%200%2024%2024'%3E%3Cpath%20d%3D'M20%2011H7.83l5.59-5.59L12%204l-8%208%208%208%201.41-1.41L7.83%2013H20v-2z'%20fill%3D'%23ffffff'%2F%3E%3C%2Fsvg%3E");
 }
 i.icon.icon-forward {
-  width: 24px;
-  height: 24px;
+    width: 29px;
+    height: 29px;
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'24'%20height%3D'24'%20viewBox%3D'0%200%2024%2024'%3E%3Cpath%20d%3D'M12%204l-1.41%201.41L16.17%2011H4v2h12.17l-5.58%205.59L12%2020l8-8z'%20fill%3D'%23ffffff'%2F%3E%3C%2Fsvg%3E");
 }
 i.icon.icon-bars {
-  width: 24px;
-  height: 24px;
+    width: 29px;
+    height: 29px;
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'24'%20height%3D'24'%20viewBox%3D'0%200%2024%2024'%3E%3Cpath%20d%3D'M3%2018h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z'%20fill%3D'%23ffffff'%2F%3E%3C%2Fsvg%3E");
 }
 i.icon.icon-camera {
@@ -2427,7 +2427,6 @@ html.pixel-ratio-3 .list-block .item-inner:after {
   -webkit-flex-shrink: 1;
   -ms-flex: 0 1 auto;
   flex-shrink: 1;
-  white-space: nowrap;
   position: relative;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2486,7 +2485,7 @@ html:not(.watch-active-state) .list-block .item-link:active,
 }
 .list-block .item-content {
   box-sizing: border-box;
-  padding-left: 16px;
+  padding-left: 3px;
   min-height: 48px;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -3417,8 +3416,8 @@ label.label-radio.active-state .item-inner:after {
 /* === Floating Action Button === */
 .floating-button {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  bottom: 60px;
+  right: 10px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -4327,10 +4326,10 @@ input.modal-text-input::-webkit-input-placeholder {
 input.modal-text-input + input.modal-text-input {
   margin-top: 16px;
 }
-.popover {
+.popover {  
   width: 320px;
   background: #fff;
-  z-index: 13500;
+  z-index: 99999;
   margin: 0;
   top: 0;
   opacity: 0;
@@ -5052,7 +5051,7 @@ body.panel-closing .views {
 .message-received .message-text {
   background-color: #fff;
   border-radius: 2px 2px 2px 0px;
-  margin-left: 8px;
+  margin-left: 53px;
 }
 .message-received .message-text:before {
   position: absolute;

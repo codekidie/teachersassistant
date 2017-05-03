@@ -176,5 +176,13 @@
         "variables": {
             "API_KEY_FOR_ANDROID": "AIzaSyAuZbKPNBsrJpkscy5v7xMXvc5hOz4IsAM"
         }
+    },
+    "cordova-plugin-printer": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-printer"
+        },
+        "is_top_level": true,
+        "variables": {}
     }
 }

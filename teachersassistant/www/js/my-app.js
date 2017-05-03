@@ -33,6 +33,103 @@ function onConfirm(button) {
     }
 }
 
+   function deactivate(teacher_key)
+    {
+       myApp.modal({
+                      title:"Activation Form",
+                      text: '',
+                      buttons: [
+                       {
+                          text: 'Cancel',
+                          onClick: function() {
+                             
+                          }
+                        },
+                        {
+                          text: 'Deactivate',
+                          onClick: function() {
+                              var ref = firebase.database().ref("users"); //root reference to your data
+                              ref.orderByKey().equalTo(teacher_key)
+                               .once('value').then(function(snapshot) {
+                                   snapshot.forEach(function(childSnapshot) {
+                                    var key = childSnapshot.key;
+                                    var childData = childSnapshot.val();
+                                    if (key == teacher_key) {
+                                      firebase.database().ref('users/'+key).update({
+                                        active: 0
+                                      });
+                                        myApp.alert('Teacher Deactivated Successfully', 'Activation Form');
+                                    }
+                                });
+                              });
+                          }
+                        },{
+                          text: 'Active',
+                          onClick: function() {
+                              var ref = firebase.database().ref("users"); //root reference to your data
+                              ref.orderByKey().equalTo(teacher_key)
+                               .once('value').then(function(snapshot) {
+                                   snapshot.forEach(function(childSnapshot) {
+                                    var key = childSnapshot.key;
+                                    var childData = childSnapshot.val();
+                                    if (key == teacher_key) {
+                                      firebase.database().ref('users/'+key).update({
+                                        active: 1
+                                      });
+                                        myApp.alert('Teacher Set To Active Successfully', 'Activation Form');
+                                    }
+                                });
+                              });
+
+                          }
+                        }
+                      ]
+                    });
+    }
+
+function changePassword()
+{
+
+    
+    var content = '<div class="list-block"><ul><li><input type="password" placeholder="New Password" id="newpassword"></li> </ul></div>';
+
+    myApp.modal({
+        title:  "Change Password Form",
+        text: content,
+        buttons: [
+          {
+            text: 'Cancel',
+            onClick: function() {
+
+            }
+          },{
+            text: 'Submit',
+            onClick: function() {
+               var user_id = $$('.statusbar-overlay').data('userid');
+
+                var ref = firebase.database().ref("users"); //root reference to your data
+                ref.orderByKey().equalTo(user_id)
+                 .once('value').then(function(snapshot) {
+                     snapshot.forEach(function(childSnapshot) {
+                      var key = childSnapshot.key;
+                      var childData = childSnapshot.val();
+                      var newpassword = $('#newpassword').val();
+                      if (key == user_id) {
+                        firebase.database().ref('users/'+key).update({
+                          password: newpassword
+                        });
+                          myApp.alert('Password Updated Successfully', 'Change Password');
+                                     
+                      }
+                  });
+                });
+
+            }
+          }
+        ]
+      });
+}
+
 // Start new code for back button
 document.addEventListener('deviceready', function() {
     var exitApp = false, intval = setInterval(function (){exitApp = false;}, 1000);
@@ -51,6 +148,21 @@ document.addEventListener('deviceready', function() {
 
 
 
+function printme()
+{ 
+
+  $("#printme").print({
+      addGlobalStyles : true,
+      stylesheet : null,
+      rejectWindow : true,
+      noPrintSelector : ".no-print",
+      iframe : true,
+      append : null,
+      prepend : null
+  });
+
+  
+}
 
 function showloader()
 {
@@ -68,6 +180,17 @@ myApp.onPageInit('index', function() {
   $$('.navbar').hide();
 }).trigger();
 
+function logout()
+{
+    showloader();
+      firebase.auth().signOut().then(function() {
+         mainView.router.loadPage({url:'login-screen-page.html', ignoreCache:true, reload:true })
+      }, function(error) {
+          myApp.alert('Sign Out Failed', function () {
+            mainView.goBack();
+          });
+      });
+}
 
 $$('.signout').on('click', function () {
     showloader();
@@ -221,6 +344,9 @@ $$(document).on('pageInit',function(e){
           var subjectname = pageContainer.find('input[name="subjectname"]').val();
           var subjectcode = pageContainer.find('input[name="subjectcode"]').val();
           var description = pageContainer.find('input[name="description"]').val();
+          var haslab = pageContainer.find('input[name="haslab"]').val();
+
+
           var subjectschedule = pageContainer.find('input[name="subjectschedule"]').val();
 
            function userExistsCallback(subjectcode, exists) {
@@ -238,7 +364,8 @@ $$(document).on('pageInit',function(e){
                         subjectname: subjectname,
                         description: description,
                         teacher_id    : user_id,
-                        subjectschedule : subjectschedule
+                        subjectschedule : subjectschedule,
+                        haslab : haslab
                       });
 
                     myApp.alert('Subject Added!', function () {
@@ -260,21 +387,41 @@ $$(document).on('pageInit',function(e){
      }
 
    
-    if (page.name === 'account') {
+   if (page.name === 'account') {
       $$('.hideonlogin').show();
       $$('.navbar').show();
       var user_id = $$('.statusbar-overlay').data('userid');
+      var loginrole = $$('.loginrole').val();
 
-      
 
-      $$('#edit_user').on('click', function (e) {
-               
-                var username =  $$('.username').text();
-                var fullname =  $$('.fullname').text();
-                var role     =  $$('.role').text();
-                var email    =  $$('.email').text();
-                var contact  =  $$('.contact').text();
-                var age      =  $$('.age').text();
+      if(loginrole == 'admin')
+        {
+          $$('.sidenavwrapper').html('<li><a href="teachers.html" class="item-link close-panel"><div class="item-content"><div class="item-inner"><div class="item-title">  <div class="item-title"> Teachers</div> </div> </div></a></li><li><a href="students.html" class="item-link close-panel"><div class="item-content"><div class="item-inner"><div class="item-title">  <div class="item-title"> Students</div> </div> </div></a></li>     <li><a href="account.html" class="item-link close-panel"><div class="item-content"><div class="item-inner"><div class="item-title">  <div class="item-title"> My Account</div></div></div></a></li><li><a href="#" class=" close-panel" onClick="logout()"> <div class="item-content"> <div class="item-inner"><div class="item-title">  <div class="item-title"> Sign Out</div></div></div></a></li>');
+        }
+
+      var query = firebase.database().ref("users").orderByKey();
+        query.once("value")
+          .then(function(snapshot) {
+            snapshot.forEach(function(childSnapshot) {
+              var key = childSnapshot.key;
+              var childData = childSnapshot.val();
+              if (key == user_id) {
+                var fullname = childData.fullname;
+                // $$('.username').html(childData.username);
+                // $$('.fullname').html(childData.fullname);
+                // $$('.fullname').val(childData.fullname);
+                $$('.role').html(childData.role);
+                // $$('.email').html(childData.email);
+                // $$('.usercontact').html(childData.contact);
+                // $$('.age').html(childData.age);
+                $$(".fullnamebg").css("background-image", 'url(http://amadavaothesisrecords.com/uploads_teachers/'+childData.image+')');
+                
+                var username =  childData.username;
+                var fullname =  childData.fullname;
+                var role     =  childData.role;
+                var email    =  childData.email;
+                var contact  =  childData.contact;
+                var age      =  childData.age;
 
                 $$('.username').html(' <div class="item-input"><input value="'+username+'" type="text" id="username" name="username" readonly> </div>');
 
@@ -304,34 +451,38 @@ $$(document).on('pageInit',function(e){
                                     firebase.database().ref('users/'+key).update({
                                           username: username
                                     });
+                                     myApp.alert('Username Updated Successfully', 'Edit Account');
+
                                   }
                             });
                         });
               });
 
 
-                $$('#password').on('keyup', function (e) { 
+              //   $$('#password').on('keyup', function (e) { 
                     
-                      var user_id = $$('.statusbar-overlay').data('userid');
+              //         var user_id = $$('.statusbar-overlay').data('userid');
 
-                        var ref = firebase.database().ref("users"); //root reference to your data
-                        ref.orderByKey().equalTo(user_id)
-                         .once('value').then(function(snapshot) {
-                             snapshot.forEach(function(childSnapshot) {
-                              var key = childSnapshot.key;
-                              var childData = childSnapshot.val();
-                                  if (key == user_id) {
-                                    var password =  $$('#password').val();
-                                    firebase.database().ref('users/'+key).update({
-                                          password: password
-                                    });
-                                  }
-                            });
-                        });
-              });
+              //           var ref = firebase.database().ref("users"); //root reference to your data
+              //           ref.orderByKey().equalTo(user_id)
+              //            .once('value').then(function(snapshot) {
+              //                snapshot.forEach(function(childSnapshot) {
+              //                 var key = childSnapshot.key;
+              //                 var childData = childSnapshot.val();
+              //                     if (key == user_id) {
+              //                       var password =  $$('#password').val();
+              //                       firebase.database().ref('users/'+key).update({
+              //                             password: password
+              //                       });
+              //                        myApp.alert('Email Updated Successfully', 'Edit Account');
+
+              //                     }
+              //               });
+              //           });
+              // });
 
 
-               $$('#age').on('keyup', function (e) { 
+              $$('#age').on('keyup', function (e) { 
                     
                       var user_id = $$('.statusbar-overlay').data('userid');
 
@@ -346,32 +497,33 @@ $$(document).on('pageInit',function(e){
                                     firebase.database().ref('users/'+key).update({
                                           age: age
                                     });
+                                     myApp.alert('Age Updated Successfully', 'Edit Account');
+
                                   }
                             });
                         });
               });
 
-
-
-              $$('#fullname').on('keyup', function (e) { 
+              // $$('#fullname').on('keyup', function (e) { 
                     
-                      var user_id = $$('.statusbar-overlay').data('userid');
-                      
-                        var ref = firebase.database().ref("users"); //root reference to your data
-                        ref.orderByKey().equalTo(user_id)
-                         .once('value').then(function(snapshot) {
-                             snapshot.forEach(function(childSnapshot) {
-                              var key = childSnapshot.key;
-                              var childData = childSnapshot.val();
-                                  if (key == user_id) {
-                                    var fullname =  $$('#fullname').val();
-                                    firebase.database().ref('users/'+key).update({
-                                          fullname: fullname
-                                    });
-                                  }
-                            });
-                        });
-              });
+              //         var user_id = $$('.statusbar-overlay').data('userid');
+              //           var ref = firebase.database().ref("users"); //root reference to your data
+              //           ref.orderByKey().equalTo(user_id)
+              //            .once('value').then(function(snapshot) {
+              //                snapshot.forEach(function(childSnapshot) {
+              //                 var key = childSnapshot.key;
+              //                 var childData = childSnapshot.val();
+              //                     if (key == user_id) {
+              //                       var fullname =  $$('#fullname').val();
+              //                        myApp.alert('Full name Updated Successfully', 'Edit Account');
+
+              //                       firebase.database().ref('users/'+key).update({
+              //                             fullname: fullname
+              //                       });
+              //                     }
+              //               });
+              //           });
+              // });
 
 
               $$('#email').on('keyup', function (e) { 
@@ -389,6 +541,7 @@ $$(document).on('pageInit',function(e){
                                     firebase.database().ref('users/'+key).update({
                                           email: email
                                     });
+                                     myApp.alert('Email Updated Successfully', 'Edit Account');
                                   }
                             });
                         });
@@ -410,6 +563,8 @@ $$(document).on('pageInit',function(e){
                                     firebase.database().ref('users/'+key).update({
                                           contact: contact
                                     });
+                                     myApp.alert('Contact Updated Successfully', 'Edit Account');
+
                                   }
                             });
                         });
@@ -417,37 +572,9 @@ $$(document).on('pageInit',function(e){
 
 
 
-
-
-      });
-
-
-
-
-    
-
-
-      var query = firebase.database().ref("users").orderByKey();
-        query.once("value")
-          .then(function(snapshot) {
-            snapshot.forEach(function(childSnapshot) {
-              var key = childSnapshot.key;
-              var childData = childSnapshot.val();
-              if (key == user_id) {
-                var fullname = childData.fullname;
-                $$('.username').html(childData.username);
-                $$('.fullname').html(childData.fullname);
-                $$('.fullname').val(childData.fullname);
-                $$('.role').html(childData.role);
-                $$('.email').html(childData.email);
-                $$('.usercontact').html(childData.contact);
-                $$('.age').html(childData.age);
-                $$(".fullnamebg").css("background-image", 'url(http://amadavaothesisrecords.com/uploads_teachers/'+childData.image+')');
               }
           });
         });
-
-        
 
           mainView.router.loadPage({url:'account.html', ignoreCache:true, reload:true })
           return true;

@@ -1,4 +1,45 @@
+function getStudentSubjectData(key)
+{
 
+    $$('.subject-data').val(key);
+     var user_id = $$('.statusbar-overlay').data('userid');
+     var query = firebase.database().ref("subjects").orderByKey();
+       query.once("value")
+         .then(function(snapshot) {
+             snapshot.forEach(function(childSnapshot) {
+               var key2 = childSnapshot.key;
+               var childData = childSnapshot.val();
+               if ( key2 == key) {
+                   var subjectname = childData.subjectname;
+                   $$('.subject-name').val(subjectname);
+
+                   var content = "";
+                   content += '<div style="background:#4caf50;font-size: 12px;padding:5px;color:#fff;"><span style="float:left;">SECTION</span><span style="float:right;">TIME</span> <br style="clear:both;"><span style="float:left;">'+childData.subjectname+'</span><span style="float:right;">'+childData.subjectschedule+'</span> <br style="clear:both;"></div>';
+
+                
+
+                   content += '<a href="posts.html"><div class="card" style="width:40%;float:left;"><center><h4>Posts</h4></center><p style="text-align: center;font-size: 12px;padding: 2px;">View add and comment post for the subject</p></div></a><br style="clear:both;">';
+
+
+
+
+                   myApp.modal({
+                    title:  subjectname,
+                    text: content,
+                    buttons: [
+                      {
+                        text: 'Close',
+                        onClick: function() {
+
+                        }
+                      },
+                    ]
+                  })
+               }
+           });
+       });
+
+}
 
 
 function getSubjectData(key)
@@ -86,7 +127,7 @@ $$(document).on('pageInit',function(e){
                                     var childData = childSnapshot.val();
                                     if (key == subject_id ) {
 
-                                      $$('.subjectscontents').append('<li class="item-content" onclick="viewGradesStudent(\''+$$('.fullname').val()+'\',\''+subject_id+'\')"><div class="item-inner"><div class="item-title">Subject Name</div><div class="item-after">'+childData.subjectname+'</div></div></li>');
+                                      $$('.subjectscontents').append('<li><a href="#" onclick="getStudentSubjectData(\''+key+'\')" class="item-link item-content"><div class="item-inner"><div class="item-title">'+childData.subjectname+'</div><div class="item-after">'+childData.subjectcode+'</div></div></a></li>');
 
                                       }
                                    });
