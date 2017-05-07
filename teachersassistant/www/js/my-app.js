@@ -194,6 +194,9 @@ function logout()
             mainView.goBack();
           });
       });
+
+       mainView.router.loadPage({url:'login-screen-page.html', ignoreCache:true, reload:true })
+       return true;
 }
 
 $$('.signout').on('click', function () {
