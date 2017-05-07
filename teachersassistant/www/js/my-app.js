@@ -172,6 +172,10 @@ function showloader()
     }, 1000);
 }
 
+$$('.hidenavbar').on('click', function () {
+  $$('.hideonlogin').hide();
+  $$('.navbar').hide();
+});
 
 
 myApp.onPageInit('index', function() {
@@ -221,7 +225,7 @@ myApp.onPageInit('login-screen', function (page) {
 
          function loginuserExistsCallback(username, exists) {
             if (exists) {
-                mainView.router.loadPage({url:'account.html', ignoreCache:true, reload:true })
+                mainView.router.loadPage({url:'menu.html', ignoreCache:true, reload:true })
                 return true;
             }
             else {
@@ -580,6 +584,37 @@ $$(document).on('pageInit',function(e){
           return true;
     }
 
+
+    if (page.name === 'menu') {
+      $$('.hideonlogin').show();
+      $$('.navbar').show();
+      var user_id = $$('.statusbar-overlay').data('userid');
+      var loginrole = $$('.loginrole').val();
+      var fullname = $$('.fullname').val();
+      
+
+      $$('.getusername').text(fullname);
+
+      
+
+      if(loginrole == 'admin')
+        {
+            $$('.hideonadmin').hide();
+            $$('.showonadmin').show();
+        }
+        else if(loginrole == 'teacher')
+        {
+           $$('.hideonteacher').hide();
+           $$('.showonteacher').show();
+           
+        }
+        else if(loginrole == 'student')  
+
+           $$('.hideonstudent').hide();
+           $$('.showonstudent').show();
+
+           
+        }
 
 
     
